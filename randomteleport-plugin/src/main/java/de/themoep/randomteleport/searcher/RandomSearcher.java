@@ -18,6 +18,7 @@ package de.themoep.randomteleport.searcher;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import de.themoep.randomteleport.RandomTeleport;
@@ -25,7 +26,6 @@ import de.themoep.randomteleport.ValidatorRegistry;
 import de.themoep.randomteleport.searcher.options.NotFoundException;
 import de.themoep.randomteleport.searcher.validators.LocationValidator;
 import io.papermc.lib.PaperLib;
-import org.apache.commons.lang.Validate;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -38,6 +38,7 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
@@ -189,8 +190,8 @@ public class RandomSearcher {
      * @param center The center location; never null
      */
     public void setCenter(Location center) {
-        Validate.notNull(center, "Center cannot be null!");
-        Validate.notNull(center.getWorld(), "Center world cannot be null!");
+        Objects.requireNonNull(center, "Center cannot be null!");
+        Objects.requireNonNull(center.getWorld(), "Center world cannot be null!");
         this.center = center;
     }
 
@@ -207,7 +208,7 @@ public class RandomSearcher {
      * @param minRadius The min radius; has to be positive and less than the max radius!
      */
     public void setMinRadius(int minRadius) {
-        Validate.isTrue(minRadius >= 0 && minRadius < maxRadius, "Min radius has to be positive and less than the max radius!");
+        Preconditions.checkArgument(minRadius >= 0 && minRadius < maxRadius, "Min radius has to be positive and less than the max radius!");
         this.minRadius = minRadius;
     }
 
@@ -224,7 +225,7 @@ public class RandomSearcher {
      * @param maxRadius The max radius; has to be greater than the min radius!
      */
     public void setMaxRadius(int maxRadius) {
-        Validate.isTrue(maxRadius > minRadius, "Max radius has to be greater than the min radius!");
+        Preconditions.checkArgument(maxRadius > minRadius, "Max radius has to be greater than the min radius!");
         this.maxRadius = maxRadius;
     }
 
@@ -257,8 +258,8 @@ public class RandomSearcher {
      * @param minY The min Y; has to be positive and less than the max Y!
      */
     public void setMinY(int minY) {
-        Validate.isTrue(minY >= plugin.getMinHeight(center.getWorld()), "Min Y has to be at least the world's minimum height!");
-        Validate.isTrue(minY < maxY, "Min Y has to be less than the max Y!");
+        Preconditions.checkArgument(minY >= plugin.getMinHeight(center.getWorld()), "Min Y has to be at least the world's minimum height!");
+        Preconditions.checkArgument(minY < maxY, "Min Y has to be less than the max Y!");
         this.minY = minY;
     }
 
@@ -275,7 +276,7 @@ public class RandomSearcher {
      * @param maxY The max Y; has to be greater than the min Y!
      */
     public void setMaxY(int maxY) {
-        Validate.isTrue(maxY <= center.getWorld().getMaxHeight() && maxY > minY, "Max Y has to be greater than the min Y and at most the world's max height!");
+        Preconditions.checkArgument(maxY <= center.getWorld().getMaxHeight() && maxY > minY, "Max Y has to be greater than the min Y and at most the world's max height!");
         this.maxY = maxY;
     }
 
@@ -312,7 +313,7 @@ public class RandomSearcher {
      * @param cooldown The cooldown in seconds
      */
     public void setCooldown(int cooldown) {
-        Validate.isTrue(cooldown >= 0, "Cooldown can't be negative!");
+        Preconditions.checkArgument(cooldown >= 0, "Cooldown can't be negative!");
         this.cooldown = cooldown;
     }
 

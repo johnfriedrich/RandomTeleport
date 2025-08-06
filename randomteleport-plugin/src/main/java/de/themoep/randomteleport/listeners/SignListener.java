@@ -20,6 +20,7 @@ package de.themoep.randomteleport.listeners;
 
 import de.themoep.randomteleport.RandomTeleport;
 import de.themoep.randomteleport.searcher.RandomSearcher;
+import org.bukkit.Bukkit;
 import org.bukkit.block.Sign;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -60,14 +61,18 @@ public class SignListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onSignDestroy(BlockBreakEvent event) {
         if (event.getBlock().getType().name().contains("SIGN")) {
-            Sign sign = (Sign) event.getBlock().getState();
-            if (plugin.matchesSignVariable(sign.getLine(1))) {
-                if (!event.getPlayer().hasPermission("randomteleport.sign.destroy")) {
-                    event.setCancelled(true);
-                    plugin.sendMessage(event.getPlayer(), "sign.no-permission.destroy", "perm", "randomteleport.sign.destroy");
-                } else {
-                    plugin.sendMessage(event.getPlayer(), "sign.destroyed", "preset", sign.getLine(2));
+            try {
+                Sign sign = (Sign) event.getBlock().getState();
+                if (plugin.matchesSignVariable(sign.getLine(1))) {
+                    if (!event.getPlayer().hasPermission("randomteleport.sign.destroy")) {
+                        event.setCancelled(true);
+                        plugin.sendMessage(event.getPlayer(), "sign.no-permission.destroy", "perm", "randomteleport.sign.destroy");
+                    } else {
+                        plugin.sendMessage(event.getPlayer(), "sign.destroyed", "preset", sign.getLine(2));
+                    }
                 }
+            } catch (Exception e){
+                plugin.getLogger().log(Level.SEVERE, "Catched " + e.getMessage(), e);
             }
         }
     }

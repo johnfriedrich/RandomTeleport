@@ -18,8 +18,8 @@ package de.themoep.randomteleport.searcher.options;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+import com.google.common.base.Preconditions;
 import de.themoep.randomteleport.searcher.RandomSearcher;
-import org.apache.commons.lang.Validate;
 import org.bukkit.command.CommandSender;
 
 import java.util.Arrays;
@@ -42,7 +42,7 @@ public class SimpleOptionParser implements OptionParser {
     }
 
     public SimpleOptionParser(String[] optionAliases, int argsLength, BiFunction<RandomSearcher, String[], Boolean> parser) {
-        Validate.notEmpty(optionAliases);
+        Preconditions.checkArgument(optionAliases != null && optionAliases.length != 0);
         this.aliases = Arrays.stream(optionAliases).map(String::toLowerCase).collect(Collectors.toSet());
         this.argsLength = argsLength;
         this.parser = parser;
