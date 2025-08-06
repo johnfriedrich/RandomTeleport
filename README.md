@@ -16,7 +16,7 @@ Permission: `randomteleport.use`
 Usage                                       | Description
 --------------------------------------------|-------------------------------
 `/rtp`                                      | uses the default preset  
-`/rtp <preset> [<playername>]`              | uses a specific preset  
+`/rtp <preset1,...> [<playername>]`         | uses a specific or random preset  
 `/rtp <minRange> <maxRange> [<options>]`    | `minRange` - minimum distance to the center point (square shaped) <br> `maxRange` - maximum distance to the center point (square shaped)  
 `/rtp --stat`                               | shows a statistic of the teleports since the last restart  
 `/rtp --reload`                             | reloads the config  
@@ -24,7 +24,7 @@ Usage                                       | Description
 Option                          | Description
 --------------------------------|-------------------------------------------
 `-p,-player <playername>`       | teleports other players 
-`-w,-world <worldname>`         | teleports the player in a specific world  
+`-w,-world <world1,world2,...>` | teleports the player in a specific or random world   
 `-b,-biome <biomename...>`      | only teleport to this biome (multiple allowed, Bukkit biome names!)  
 `-x,-xPos <x value>`            | x axis of the center point, if not set the player's x axis is used  
 `-z,-zPos <z value>`            | z axis of the center point, if not set the player's z axis is used  
@@ -39,6 +39,7 @@ Option                          | Description
 `-t,-tries <amount>`            | the amount of times the plugin should try to find a random location before giving up  
 `-sp,spawnpoint [force]`        | set the respawn point of the player to the location he teleported to (force overrides existing spawnpoint)  
 `-checkdelay <ticks>`           | the amount of ticks to wait between each chunk check
+`-debug`                        | print some more debugging information in the log
 
 ## Permissions
 

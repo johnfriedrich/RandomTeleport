@@ -25,12 +25,7 @@ import de.themoep.randomteleport.api.RandomTeleportAPI;
 import de.themoep.randomteleport.hook.HookManager;
 import de.themoep.randomteleport.listeners.SignListener;
 import de.themoep.randomteleport.searcher.RandomSearcher;
-import de.themoep.randomteleport.searcher.options.AdditionalOptionParser;
-import de.themoep.randomteleport.searcher.options.NotFoundException;
-import de.themoep.randomteleport.searcher.options.OptionParser;
-import de.themoep.randomteleport.searcher.options.PlayerNotFoundException;
-import de.themoep.randomteleport.searcher.options.SimpleOptionParser;
-import de.themoep.randomteleport.searcher.options.WorldNotFoundException;
+import de.themoep.randomteleport.searcher.options.*;
 import de.themoep.randomteleport.searcher.validators.BiomeValidator;
 import de.themoep.randomteleport.searcher.validators.BlockValidator;
 import de.themoep.randomteleport.searcher.validators.HeightValidator;
@@ -107,7 +102,7 @@ public class RandomTeleport extends JavaPlugin implements RandomTeleportAPI {
                 .map(s -> {
                     Material mat = Material.matchMaterial(s);
                     if (mat == null) {
-                        getLogger().log(Level.WARNING, "Error in save-blocks config! No material found with name " + s);
+                        getLogger().log(Level.WARNING, "Error in safe blocks config! No material found with name " + s);
                     }
                     return mat;
                 })
@@ -123,7 +118,13 @@ public class RandomTeleport extends JavaPlugin implements RandomTeleportAPI {
                 .map(s -> {
                     Material mat = Material.matchMaterial(s);
                     if (mat == null) {
-                        getLogger().log(Level.WARNING, "Error in unsave-blocks config! No material found with name " + s);
+                        getLogger().log(Level.WARNING, "Error in unsafe blocks config! No material found with name " + s);
+                    }
+                    // Air was in the default for a while now but will cause issues. Don't allow that.
+                    if (mat == Material.AIR) {
+                        getLogger().log(Level.WARNING, "Your list of unsafe blocks contained 'air'!" +
+                                " This will cause issues and has not been loaded. Remove it from your config to remove this warning!");
+                        return null;
                     }
                     return mat;
                 })
@@ -134,6 +135,7 @@ public class RandomTeleport extends JavaPlugin implements RandomTeleportAPI {
     }
 
     private void initOptionParsers() {
+        addOptionParser(new BooleanOptionParser("debug", (searcher) -> searcher.setDebug(true)));
         addOptionParser(new SimpleOptionParser(array("p", "player"), (searcher, args) -> {
             if (args.length > 0 && searcher.getInitiator().hasPermission("randomteleport.tpothers")) {
                 List<Player> players = new ArrayList<>();
@@ -181,11 +183,13 @@ public class RandomTeleport extends JavaPlugin implements RandomTeleportAPI {
         }));
         addOptionParser(new SimpleOptionParser(array("w", "world"), (searcher, args) -> {
             if (args.length > 0) {
-                World world = getServer().getWorld(args[0]);
+                String[] worldNames = args[0].split(",");
+                String worldName = worldNames[searcher.getRandom().nextInt(worldNames.length)];
+                World world = getServer().getWorld(worldName);
                 if (world == null) {
-                    throw new WorldNotFoundException(args[0]);
+                    throw new WorldNotFoundException(worldName);
                 }
-                searcher.getCenter().setWorld(world);
+                searcher.setWorld(world);
                 return true;
             }
             return false;
@@ -387,7 +391,7 @@ public class RandomTeleport extends JavaPlugin implements RandomTeleportAPI {
         }
 
         if (cooldown > 0 && cooldown < searcher.getCooldown()) {
-            sendMessage(searcher.getTargets(), "error.cooldown", "cooldown_text", (searcher.getCooldown() - cooldown) + "s");
+            sendMessage(searcher.getTargets(), "error.cooldown", "cooldown_text", Integer.toString(searcher.getCooldown() - cooldown));
             return null;
         }
         sendMessage(searcher.getTargets(), "search", "worldname", searcher.getCenter().getWorld().getName());
@@ -401,7 +405,11 @@ public class RandomTeleport extends JavaPlugin implements RandomTeleportAPI {
                 targetLoc.setX(targetLoc.getBlockX() + 0.5);
                 targetLoc.setY(targetLoc.getY() + 0.1);
                 targetLoc.setZ(targetLoc.getBlockZ() + 0.5);
-                PaperLib.teleportAsync(e, targetLoc).thenAccept(success -> {
+                if (searcher.isDebug()) {
+                    getLogger().info("[DEBUG] Search " + searcher.getId() + " triggered by " + searcher.getInitiator().getName()
+                            + " will try to teleport " + e.getType() + " " + e.getName() + "/" + e.getUniqueId() + " to " + targetLoc);
+                }
+                PaperLib.teleportAsync(e, targetLoc).whenComplete((success, ex) -> {
                     if (success) {
                         cooldowns.put(searcher.getId(), e.getUniqueId(), new AbstractMap.SimpleImmutableEntry<>(System.currentTimeMillis(), searcher.getCooldown()));
                         sendMessage(e, "teleport",
@@ -428,6 +436,9 @@ public class RandomTeleport extends JavaPlugin implements RandomTeleportAPI {
                                 "y", String.valueOf(targetLoc.getBlockY()),
                                 "z", String.valueOf(targetLoc.getBlockZ())
                         );
+                    }
+                    if (ex != null && searcher.isDebug()) {
+                        getLogger().log(Level.SEVERE, "Error while trying to teleport to location!", ex);
                     }
                 });
             });
